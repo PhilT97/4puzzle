@@ -14,6 +14,7 @@ class GameplayManager{
     
     unowned var scene : GameScene
     var globalBlockSize : Int
+    var shuffleMoves : Bool = false
     
     init(scene : GameScene, blockSize: Int){
         self.scene = scene
@@ -24,7 +25,6 @@ class GameplayManager{
     var IterationCount = 0
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
-    let touchArea = UIView(frame: CGRect(x: 0, y: -200, width: 300, height: 200))
     var image: UIImage?
     var sprites: [SKSpriteNode] = []
     
@@ -192,7 +192,7 @@ class GameplayManager{
         
     func checkIfPuzzleIsSolved() -> Bool {
             let solved = tileOrder == (1...maxNumberOfBlocks).map {$0}
-            if(solved) {
+            if(solved && !shuffleMoves) {
                 let alert = UIAlertController(title: "Siegesbenachrichtigung", message: "GEWONNEN!", preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
                 self.scene.view?.window?.rootViewController?.present(alert, animated: true)
@@ -220,19 +220,29 @@ class GameplayManager{
         }
         
         func shuffle() {
-                // Definieren Sie ein Array von Closures, die Ihre Funktionen repräsentieren
-                let functions: [() -> Void] = [
-                    self.moveUp,
-                    self.moveDown,
-                    self.moveLeft,
-                    self.moveRight
-                ]
-                
-                // Wählen Sie eine zufällige Closure aus dem Array aus und führen Sie sie aus
-                let randomIndex = Int.random(in: 0..<functions.count)
+            // Definieren Sie ein Array von Closures, die Ihre Funktionen repräsentieren
+            let functions: [() -> Void] = [
+                self.moveUp,
+                self.moveDown,
+                self.moveLeft,
+                self.moveRight
+            ]
+            
+            // Wählen Sie eine zufällige Closure aus dem Array aus und führen Sie sie aus
+            var tempIndex = 0
+            for _ in 1...100 {
+                shuffleMoves = true
+                var randomIndex = Int.random(in: 0..<functions.count)
+                while(tempIndex == ((randomIndex % 3) + 1) && !isValidMove()) {
+                    randomIndex = Int.random(in: 0..<functions.count)
+                }
+                tempIndex = randomIndex
                 let randomFunction = functions[randomIndex]
                 randomFunction()
             }
+            shuffleMoves = false
+            
+        }
         
         func displayImage(image: UIImage, inView parentView: UIView, atPosition position: CGPoint, withSize size: CGSize) {
             // Erstellen Sie eine UIImageView mit dem Bild
@@ -244,6 +254,14 @@ class GameplayManager{
             // Fügen Sie die ImageView zur übergeordneten Ansicht hinzu
             parentView.addSubview(imageView)
         }
+    
+    func isValidMove() -> Bool {
+        let parentNode = scene.Empty?.parent
+        let emptyRightPosition = scene.Empty!.position.x + scene.Empty!.frame.width / 2
+        let Nodes = parentNode?.scene!.nodes(at: CGPoint(x: emptyRightPosition + 10, y: scene.Empty!.position.y))
+        let Neighbour = Nodes?.first
+        return Neighbour != nil
+    }
         
     
 }
