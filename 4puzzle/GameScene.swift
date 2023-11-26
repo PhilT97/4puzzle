@@ -20,9 +20,13 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
     var IterationCount = 0
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
-    let touchArea = UIView(frame: CGRect(x: 0, y: -200, width: 300, height: 200))
+    let touchArea = UIView()
     let buttonContainerView = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
     let reloadButton = UIButton(type: .system)
+    
+    let menuButtonContainerView = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
+    let menuButton = UIButton(type: .system)
+    
     var Empty: SKNode?
     var image: UIImage?
     var sprites: [SKSpriteNode] = []
@@ -36,10 +40,11 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
     
     override func didMove(to view: SKView) {
         
-        self.gameplayManager = GameplayManager(scene: self, blockSize: globalBlockSize)
-        
         // Check if the user has authorized access to their photo library
         let authorizationStatus = PHPhotoLibrary.authorizationStatus()
+        
+        self.gameplayManager = GameplayManager(scene: self, blockSize: globalBlockSize)
+        
         
         switch authorizationStatus {
         case .authorized:
@@ -53,32 +58,47 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
             // Handle denied or restricted authorization status
             break
         case .notDetermined:
+//            PHPhotoLibrary.requestAuthorization { [weak self] authorizationStatus in
+//                DispatchQueue.main.async {
+//                    switch authorizationStatus {
+//                    case .authorized:
+//                        break
+//                    case .denied, .restricted:
+//                        // Handle denied or restricted authorization status
+//                        break
+//                    case .notDetermined:
+//                        // Handle not determined authorization status
+//                        break
+//                    default:
+//                        break
+//                    }
+//                }
+//            }
             break
-            //            PHPhotoLibrary.requestAuthorization { [weak self] authorizationStatus in
-            //                DispatchQueue.main.async {
-            //                    switch authorizationStatus {
-            //                    case .authorized:
-            //                        break
-            //                    case .denied, .restricted:
-            //                        // Handle denied or restricted authorization status
-            //                        break
-            //                    case .notDetermined:
-            //                        // Handle not determined authorization status
-            //                        break
-            //                    default:
-            //                        break
-            //                    }
-            //                }
-            //            }
         default:
             break
         }
+        
+        touchArea.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height * 0.25)
         
         // Reload Button
         buttonContainerView.backgroundColor = .systemBlue
         buttonContainerView.layer.cornerRadius = 10 // Optional, um abgerundete Ecken hinzuzufügen
         buttonContainerView.clipsToBounds = true
         buttonContainerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        // Menu Button
+        menuButtonContainerView.backgroundColor = .systemRed
+        menuButtonContainerView.layer.cornerRadius = 10
+        menuButtonContainerView.clipsToBounds = true
+        menuButtonContainerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        menuButtonContainerView.center = CGPoint(x: view.frame.midX * 1.75, y: view.frame.midY * 1.2)
+        
+        menuButton.setTitle("Menu", for: .normal)
+        menuButton.setTitleColor(.white, for: .normal)
+        menuButton.addTarget(self, action: #selector(backToMenu), for: .touchUpInside)
+        menuButton.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+        
     
         touchArea.center = CGPoint(x: self.frame.width, y: self.frame.height)
         touchArea.backgroundColor = .systemRed
@@ -101,7 +121,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         swipeDown.direction = .down
         touchArea.addGestureRecognizer(swipeDown)
         
-        touchArea.center = CGPoint(x: view.frame.midX, y: 620)
+        touchArea.center = CGPoint(x: view.frame.midX, y: view.frame.height * 0.8)
         buttonContainerView.center = CGPoint(x:view.frame.midX / 4, y:view.frame.midY * 1.2)
         
         Empty = self.childNode(withName: "emptyCell")
@@ -111,14 +131,15 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         
         let imageSize = CGSize(width:150, height:150)
         let xCenter = UIScreen.main.bounds.width / 2 - (imageSize.width / 2)
-        let yCenter = UIScreen.main.bounds.height / 2
+        let yCenter = UIScreen.main.bounds.height / 2 - 10
         let imagePos = CGPoint(x: xCenter, y: yCenter)
         
         gameplayManager.displayImage(image: image!, inView: self.view!, atPosition: imagePos, withSize: imageSize)
         
         
         // Erstellen und konfigurieren Sie den UIButton
-        reloadButton.setTitle("Neu laden", for: .normal)
+        reloadButton.setTitle("New", for: .normal)
+        reloadButton.setTitleColor(.white, for: .normal)
         reloadButton.addTarget(self, action: #selector(reloadButtonTapped), for: .touchUpInside)
         
         // Positionieren Sie den Button innerhalb der UIView
@@ -130,6 +151,9 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         // Positionieren Sie die UIView am unteren linken Rand der Szene
         view.addSubview(buttonContainerView)
         
+        menuButtonContainerView.addSubview(menuButton)
+        view.addSubview(menuButtonContainerView)
+        
     }
     @objc func reloadButtonTapped() {
         // Code zum Neuladen der GameScene hier
@@ -138,6 +162,33 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
             currentScene.removeAllChildren()
             if let view = self.view {
                 if let scene = GameScene(fileNamed: "GameScene") {
+                    scene.scaleMode = .aspectFit
+                    
+                    view.presentScene(scene)
+                    
+                }
+                view.ignoresSiblingOrder = true
+                view.showsFPS = true
+                view.showsNodeCount = true
+            }
+            
+            // Fügen Sie hier den Code hinzu, um die GameScene neu zu initialisieren
+            // z.B. Spielzustand zurücksetzen und Spiel neu starten
+        }
+    }
+    
+    override func willMove(from view: SKView) {
+        super.willMove(from: view)
+        // Entfernen aller Subviews vom SKView
+        view.subviews.forEach({ $0.removeFromSuperview() })
+    }
+    
+    @objc func backToMenu() {
+        if let currentScene = self.scene {
+            currentScene.removeAllActions()
+            currentScene.removeAllChildren()
+            if let view = self.view {
+                if let scene = GameScene(fileNamed: "GameMenu") {
                     scene.scaleMode = .aspectFit
                     
                     view.presentScene(scene)

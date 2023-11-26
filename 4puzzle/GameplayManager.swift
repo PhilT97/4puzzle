@@ -16,6 +16,7 @@ class GameplayManager{
     var globalBlockSize : Int
     var shuffleMoves : Bool = false
     
+    
     init(scene : GameScene, blockSize: Int){
         self.scene = scene
         self.globalBlockSize = blockSize
