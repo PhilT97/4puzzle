@@ -12,9 +12,9 @@ import Photos
 
 class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     
-    
-    
     var gameplayManager : GameplayManager!
+    var inShuffle : Bool = true
+
     
     
     var IterationCount = 0
@@ -126,7 +126,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         
         Empty = self.childNode(withName: "emptyCell")
         
-        gameplayManager.shuffle()
+//        gameplayManager.shuffle()
            
         
         let imageSize = CGSize(width:150, height:150)
@@ -153,6 +153,13 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         
         menuButtonContainerView.addSubview(menuButton)
         view.addSubview(menuButtonContainerView)
+        
+//        repeatFunctionWithDelay(function: gameplayManager.shuffle, count: 50)
+        gameplayManager.shuffleWithDelay(count: 15)
+        
+//        performShuffle()
+        
+        
         
     }
     @objc func reloadButtonTapped() {
@@ -206,6 +213,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
     
     @objc func handleSwipe(_ gestureRecognizer: UISwipeGestureRecognizer) {
         if gestureRecognizer.state == .ended {
+            gameplayManager.shuffleMoves = false
             switch gestureRecognizer.direction {
             case .right:
                 gameplayManager.moveRight()
@@ -220,6 +228,30 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
             }
         }
     }
+    
+//    func performShuffle(){
+//        for _ in 0...50{
+//            let wait = SKAction.wait(forDuration: 0.5)
+//            self.run(wait) {
+//                self.gameplayManager.shuffle()
+//            }
+//        }
+//
+//    }
+    
+//    func repeatFunctionWithDelay(function: @escaping () -> Void, count: Int) {
+//        var actions: [SKAction] = []
+//
+//        for _ in 0..<count {
+//            let waitAction = SKAction.wait(forDuration: 0.13) // Wartezeit von 1 Sekunde
+//            let performAction = SKAction.run(function)
+//            let sequence = SKAction.sequence([waitAction, performAction])
+//            actions.append(sequence)
+//        }
+//
+//        let totalAction = SKAction.sequence(actions)
+//        self.run(totalAction)
+//    }
     
     
 

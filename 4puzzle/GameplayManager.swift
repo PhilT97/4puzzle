@@ -12,9 +12,14 @@ import Foundation
 
 class GameplayManager{
     
+    var rng = SystemRandomNumberGenerator()
+    
     unowned var scene : GameScene
     var globalBlockSize : Int
-    var shuffleMoves : Bool = false
+    var shuffleMoves : Bool = true
+    var lastMove : Int = 0
+    var shuffleDuration : Double = 0.05
+    var shuffleFuncDur : Double = 0.38
     
     
     init(scene : GameScene, blockSize: Int){
@@ -35,6 +40,7 @@ class GameplayManager{
     
     
     func fetchRandomImageFromGallery() -> UIImage? {
+        
         let fetchOptions = PHFetchOptions()
         let fetchResult = PHAsset.fetchAssets(with: .image, options: fetchOptions)
         guard fetchResult.count > 0 else { return nil }
@@ -128,18 +134,52 @@ class GameplayManager{
         // swap empty node with the node
         func swapNodes(node: SKNode?, emptyCell: SKNode) {
             if node != nil {
+                //images
                 let tempPos = emptyCell.position
                 let emptyCellPos = emptyCell.userData?.value(forKey: "positionValue") as? Int
+                let nodePos = node!.position
+                
+                let movePic = SKAction.move(to: tempPos, duration: shuffleDuration)
+                let moveEmpty = SKAction.move(to: nodePos, duration: shuffleDuration)
+                // array
                 let CellPos = node?.userData?.value(forKey: "positionValue") as? Int
                 tileOrder.swapAt(emptyCellPos!, CellPos!)
-                emptyCell.position = node!.position
-                node!.position = tempPos
+                // moving nodes
+                
+//                emptyCell.position = node!.position
+//                node!.position = tempPos
+                emptyCell.zPosition = -1
+                emptyCell.run(moveEmpty)
+                node!.run(movePic)
                 if checkIfPuzzleIsSolved() {
                     print("PUZZLE IS SOLVED!")
                 }
             }
             
         }
+    
+        // Check if one Neighbour is null
+    func checkNullNeigbour() -> [Int] {
+        var excludeMoves : [Int] = []
+        let parentNode = scene.Empty?.parent
+        let emptyLeftPosition = scene.Empty!.position.x - scene.Empty!.frame.width / 2
+        let Right = parentNode?.scene!.nodes(at: CGPoint(x: emptyLeftPosition - 10, y: scene.Empty!.position.y)).first
+        let emptyRightPosition = scene.Empty!.position.x + scene.Empty!.frame.width / 2
+        let Left = parentNode?.scene!.nodes(at: CGPoint(x: emptyRightPosition + 10, y: scene.Empty!.position.y)).first
+        let emptyBottomPosition = scene.Empty!.position.y - scene.Empty!.frame.height / 2
+        let Up = parentNode?.scene!.nodes(at: CGPoint(x: scene.Empty!.position.x, y: emptyBottomPosition - 10)).first
+        let emptyTopPosition = scene.Empty!.position.y + scene.Empty!.frame.height / 2
+        let Down = parentNode?.scene!.nodes(at: CGPoint(x: scene.Empty!.position.x, y: emptyTopPosition + 10)).first
+        let Neighbours = [Up, Down, Left, Right]
+        for i in 0...3{
+            if Neighbours[i] == nil {
+                excludeMoves.append(i)
+            }
+                
+        }
+        return excludeMoves
+    
+    }
         
         // Swipe Mechanics
         func moveRight() {
@@ -148,8 +188,11 @@ class GameplayManager{
             let Nodes = parentNode?.scene!.nodes(at: CGPoint(x: emptyLeftPosition - 10, y: scene.Empty!.position.y))
             let Neighbour = Nodes?.first
             if Neighbour != nil {
-                print("SWIPE RIGHT")
+//                print("SWIPE RIGHT")
                 swapNodes(node: Neighbour, emptyCell: scene.Empty!)
+            }
+            else {
+                print("SWIPE RIGHT")
             }
         }
         
@@ -159,8 +202,11 @@ class GameplayManager{
             let Nodes = parentNode?.scene!.nodes(at: CGPoint(x: emptyRightPosition + 10, y: scene.Empty!.position.y))
             let Neighbour = Nodes?.first
             if Neighbour != nil {
-                print("SWIPE UP")
+//                print("SWIPE UP")
                 swapNodes(node: Neighbour, emptyCell: scene.Empty!)
+            }
+            else {
+                print("SWIPE Left")
             }
             
         }
@@ -171,8 +217,11 @@ class GameplayManager{
             let Nodes = parentNode?.scene!.nodes(at: CGPoint(x: scene.Empty!.position.x, y: emptyBottomPosition - 10))
             let Neighbour = Nodes?.first
             if Neighbour != nil {
-                print("SWIPE UP")
+//                print("SWIPE UP")
                 swapNodes(node: Neighbour, emptyCell: scene.Empty!)
+            }
+            else {
+                print("SWIPE UP")
             }
             
         }
@@ -183,8 +232,11 @@ class GameplayManager{
             let Nodes = parentNode?.scene!.nodes(at: CGPoint(x: scene.Empty!.position.x, y: emptyTopPosition + 10))
             let Neighbour = Nodes?.first
             if Neighbour != nil {
-                print("SWIPE DOWN")
+//                print("SWIPE DOWN")
                 swapNodes(node: Neighbour, emptyCell: scene.Empty!)
+            }
+            else {
+                print("SWIPE DOWN")
             }
             
             
@@ -220,7 +272,7 @@ class GameplayManager{
             }
         }
         
-        func shuffle() {
+    func shuffle() {
             // Definieren Sie ein Array von Closures, die Ihre Funktionen repräsentieren
             let functions: [() -> Void] = [
                 self.moveUp,
@@ -230,19 +282,20 @@ class GameplayManager{
             ]
             
             // Wählen Sie eine zufällige Closure aus dem Array aus und führen Sie sie aus
-            var tempIndex = 0
-            for _ in 1...100 {
-                shuffleMoves = true
-                var randomIndex = Int.random(in: 0..<functions.count)
-                while(tempIndex == ((randomIndex % 3) + 1) && !isValidMove()) {
-                    randomIndex = Int.random(in: 0..<functions.count)
-                }
-                tempIndex = randomIndex
-                let randomFunction = functions[randomIndex]
+//            self.shuffleMoves = true
+//            var randomIndex = Int.random(in: 0..<functions.count)
+//            // check if it is the inverse move
+//            while(self.lastMove == ((randomIndex + 1) % 3)) {
+//                randomIndex = Int.random(in: 0..<functions.count)
+//            }
+//            self.lastMove = randomIndex
+            let randomIndex = generateMove(excluding: inverseOf(lastMove), and: checkNullNeigbour())
+            lastMove = randomIndex
+            let randomFunction = functions[randomIndex]
+        let wait = SKAction.wait(forDuration: 0.3)
+            self.scene.run(wait){
                 randomFunction()
             }
-            shuffleMoves = false
-            
         }
         
         func displayImage(image: UIImage, inView parentView: UIView, atPosition position: CGPoint, withSize size: CGSize) {
@@ -256,12 +309,41 @@ class GameplayManager{
             parentView.addSubview(imageView)
         }
     
-    func isValidMove() -> Bool {
-        let parentNode = scene.Empty?.parent
-        let emptyRightPosition = scene.Empty!.position.x + scene.Empty!.frame.width / 2
-        let Nodes = parentNode?.scene!.nodes(at: CGPoint(x: emptyRightPosition + 10, y: scene.Empty!.position.y))
-        let Neighbour = Nodes?.first
-        return Neighbour != nil
+    func twoValueRandomicer(value1:Int, value2:Int) -> Int{
+        return Bool.random() ? value1: value2
+        
+    }
+    
+    func shuffleWithDelay(count: Int) {
+        var actions: [SKAction] = []
+
+        for _ in 0..<count {
+            let waitAction = SKAction.wait(forDuration: shuffleFuncDur) // Wartezeit von 1 Sekunde
+            let performAction = SKAction.run(shuffle)
+            let sequence = SKAction.sequence([waitAction, performAction])
+            actions.append(sequence)
+        }
+
+        let totalAction = SKAction.sequence(actions)
+        scene.run(totalAction)
+    }
+    
+    func inverseOf(_ move: Int) -> Int {
+        switch move {
+        case 0: return 1
+        case 1: return 0
+        case 2: return 3
+        case 3: return 2
+        default: return move
+        }
+    }
+
+    func generateMove(excluding inverseOfLastMove: Int, and invalidMoves: [Int]) -> Int {
+        var possibleMoves = [0, 1, 2, 3]
+        possibleMoves.removeAll {invalidMoves.contains($0)}
+        possibleMoves.removeAll { $0 == inverseOfLastMove }
+
+        return possibleMoves.randomElement(using: &rng) ?? 1
     }
         
     

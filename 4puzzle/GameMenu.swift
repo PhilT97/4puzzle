@@ -23,7 +23,7 @@ class GameMenu: SKScene, UIImagePickerControllerDelegate & UINavigationControlle
     var back = UIButton(type: .system)
     
     // animation time
-    let slide = 0.8
+    let slide = 0.3
     
     override func didMove(to view: SKView) {
         
