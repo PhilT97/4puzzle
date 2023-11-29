@@ -18,8 +18,8 @@ class GameplayManager{
     var globalBlockSize : Int
     var shuffleMoves : Bool = true
     var lastMove : Int = 0
-    var shuffleDuration : Double = 0.045
-    var shuffleFuncDur : Double = 0.365
+    var shuffleDuration : Double = 0.02
+    var shuffleFuncDur : Double = 0.2
     
     
     init(scene : GameScene, blockSize: Int){
@@ -192,7 +192,7 @@ class GameplayManager{
         let Down = parentNode?.scene!.nodes(at: CGPoint(x: scene.Empty!.position.x, y: emptyTopPosition + 10)).first
         let Neighbours = [Up, Down, Left, Right]
         for i in 0...3{
-            if Neighbours[i] == nil {
+            if Neighbours[i] == nil /* && Neighbours[i]?.zPosition == 1*/{
                 excludeMoves.append(i)
             }
                 
@@ -293,15 +293,15 @@ class GameplayManager{
         }
         
     func shuffle() {
-            // Definieren Sie ein Array von Closures, die Ihre Funktionen repräsentieren
-            let functions: [() -> Void] = [
-                self.moveUp,
-                self.moveDown,
-                self.moveLeft,
-                self.moveRight
-            ]
-            
-            // Wählen Sie eine zufällige Closure aus dem Array aus und führen Sie sie aus
+        // Definieren Sie ein Array von Closures, die Ihre Funktionen repräsentieren
+        let functions: [() -> Void] = [
+            self.moveUp,
+            self.moveDown,
+            self.moveLeft,
+            self.moveRight
+        ]
+        
+        // Wählen Sie eine zufällige Closure aus dem Array aus und führen Sie sie aus
 //            self.shuffleMoves = true
 //            var randomIndex = Int.random(in: 0..<functions.count)
 //            // check if it is the inverse move
@@ -309,14 +309,11 @@ class GameplayManager{
 //                randomIndex = Int.random(in: 0..<functions.count)
 //            }
 //            self.lastMove = randomIndex
-            let randomIndex = generateMove(excluding: inverseOf(lastMove), and: checkNullNeigbour())
-            lastMove = randomIndex
-            let randomFunction = functions[randomIndex]
-        let wait = SKAction.wait(forDuration: 0.3)
-            self.scene.run(wait){
-                randomFunction()
-            }
-        }
+        let randomIndex = generateMove(excluding: inverseOf(lastMove), and: checkNullNeigbour())
+        lastMove = randomIndex
+        let randomFunction = functions[randomIndex]
+        randomFunction()
+    }
         
         func displayImage(image: UIImage, inView parentView: UIView, atPosition position: CGPoint, withSize size: CGSize) -> SKSpriteNode {
             // Erstellen Sie eine UIImageView mit dem Bild
@@ -341,18 +338,24 @@ class GameplayManager{
         
     }
     
+    // Visible Shuffle
     func shuffleWithDelay(count: Int) {
         var actions: [SKAction] = []
-
+        scene.view!.isUserInteractionEnabled = false
         for _ in 0..<count {
             let waitAction = SKAction.wait(forDuration: shuffleFuncDur) // Wartezeit von 1 Sekunde
-            let performAction = SKAction.run(shuffle)
+            let performAction = SKAction.run{
+                self.shuffle()
+            }
             let sequence = SKAction.sequence([waitAction, performAction])
             actions.append(sequence)
         }
 
         let totalAction = SKAction.sequence(actions)
-        scene.run(totalAction)
+        scene.run(totalAction) {
+            self.scene.view!.isUserInteractionEnabled = true
+            self.shuffleDuration = 0.05
+        }
     }
     
     func inverseOf(_ move: Int) -> Int {
