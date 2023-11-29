@@ -318,15 +318,22 @@ class GameplayManager{
             }
         }
         
-        func displayImage(image: UIImage, inView parentView: UIView, atPosition position: CGPoint, withSize size: CGSize) {
+        func displayImage(image: UIImage, inView parentView: UIView, atPosition position: CGPoint, withSize size: CGSize) -> SKSpriteNode {
             // Erstellen Sie eine UIImageView mit dem Bild
-            let imageView = UIImageView(image: image)
+//            let imageView = UIImageView(image: image)
+//            
+//            // Stellen Sie den Frame der ImageView ein, um die Größe und Position zu bestimmen
+//            imageView.frame = CGRect(origin: position, size: size)
             
-            // Stellen Sie den Frame der ImageView ein, um die Größe und Position zu bestimmen
-            imageView.frame = CGRect(origin: position, size: size)
+            
             
             // Fügen Sie die ImageView zur übergeordneten Ansicht hinzu
-            parentView.addSubview(imageView)
+//            parentView.addSubview(imageView)
+            let spriteTexture = SKTexture(image: image)
+            let spriteImage = SKSpriteNode(texture: spriteTexture, size: size)
+            spriteImage.position = position
+            
+            return spriteImage
         }
     
     func twoValueRandomicer(value1:Int, value2:Int) -> Int{

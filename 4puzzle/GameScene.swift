@@ -123,7 +123,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         
     
         touchArea.center = CGPoint(x: self.frame.width, y: self.frame.height)
-        touchArea.backgroundColor = .systemRed
+        touchArea.backgroundColor = .clear
         touchArea.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(touchArea)
         
@@ -151,12 +151,14 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
 //        gameplayManager.shuffle()
            
         
-        let imageSize = CGSize(width:150, height:150)
-        let xCenter = UIScreen.main.bounds.width / 2 - (imageSize.width / 2)
-        let yCenter = UIScreen.main.bounds.height / 2 - 10
+        let imageSize = CGSize(width:300, height:300)
+        let xCenter = 0
+        let yCenter = -125
         let imagePos = CGPoint(x: xCenter, y: yCenter)
         
-        gameplayManager.displayImage(image: image!, inView: self.view!, atPosition: imagePos, withSize: imageSize)
+        let hintImage = gameplayManager.displayImage(image: image!, inView: self.view!, atPosition: imagePos, withSize: imageSize)
+        hintImage.zPosition = 1
+        self.addChild(hintImage)
         
         
         // Erstellen und konfigurieren Sie den UIButton

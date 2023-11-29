@@ -130,14 +130,35 @@ class GameMenu: SKScene, UIImagePickerControllerDelegate & UINavigationControlle
     }
     
     @objc func galleryModeFunc(from view: SKView){
+        var delay: TimeInterval = 0.0
+        let delayIncrement: TimeInterval = 0.2
+        for view in self.view!.subviews {
+            if let button = view as? UIButton, button.currentTitle != "back"{
+                UIView.animate(withDuration: 0.6, delay: delay, options: [], animations: {
+                    button.center.x -= self.view!.frame.midX * 2
+                }, completion: nil)
+                delay += delayIncrement
+            }
+            else {
+                if let button = view as? UIButton {
+                    UIView.animate(withDuration: 0.3){
+                        button.alpha = 0
+                    }
+                }
+            }
+        }
         if let currentScene = self.scene {
                     currentScene.removeAllActions()
                     currentScene.removeAllChildren()
                     if let view = self.view {
                         if let scene = GameScene(fileNamed: "GameScene") {
                             scene.scaleMode = .aspectFit
-        
-                            view.presentScene(scene)
+                            let wait = SKAction.wait(forDuration: 0.5)
+                            self.run(wait){
+                                let transition = SKTransition.doorway(withDuration: 0.63)
+                                view.presentScene(scene, transition: transition)
+                            }
+                            
         
                         }
                         view.ignoresSiblingOrder = true
