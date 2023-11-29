@@ -13,13 +13,13 @@ import Foundation
 class GameplayManager{
     
     var rng = SystemRandomNumberGenerator()
-    
+    // 0.041, 0.365
     unowned var scene : GameScene
     var globalBlockSize : Int
     var shuffleMoves : Bool = true
     var lastMove : Int = 0
-    var shuffleDuration : Double = 0.05
-    var shuffleFuncDur : Double = 0.38
+    var shuffleDuration : Double = 0.038
+    var shuffleFuncDur : Double = 0.365
     
     
     init(scene : GameScene, blockSize: Int){
@@ -66,97 +66,120 @@ class GameplayManager{
     }
     
     
-    func splitImageIntoSprites(image: UIImage!, blockSize: Int) -> [SKSpriteNode]{
+    func splitImageIntoSprites(image: UIImage!, blockSize: Int) -> (spritesOut: [SKSpriteNode], gridCenter: CGPoint, gridSize: CGSize){
             
-    //        // Crop the image to a square
-            let size = min(image.size.width, image.size.height)
-    //        let rect = CGRect(x: (image.size.width - size) / 2, y: (image.size.height - size) / 2, width: size, height: size)
-    //        let croppedImage = image.cgImage!.cropping(to: rect)!
-            let croppedImage = image.cgImage!
-            
-            
-            // Split the square image into 16 equal parts
-            let spriteWidth = size / CGFloat(blockSize)
-            var sprites: [SKSpriteNode] = []
-            for row in 0..<blockSize {
-                for col in 0..<blockSize {
-                    let x = CGFloat(col) * spriteWidth
-                    let y = CGFloat(blockSize-1 - row) * spriteWidth
-                    let spriteRect = CGRect(x: x, y: y, width: spriteWidth, height: spriteWidth)
-                    let spriteCGImage = croppedImage.cropping(to: spriteRect)!
-                    let spriteImage = UIImage(cgImage: spriteCGImage)
-                    let spriteTexture = SKTexture(image: spriteImage)
-                    let sprite = SKSpriteNode(texture: spriteTexture)
-                    sprites.append(sprite)
-                }
+//        // Crop the image to a square
+//        let size = min(image.size.width, image.size.height)
+        let size = scene.size.width * 0.8
+//        let rect = CGRect(x: (image.size.width - size) / 2, y: (image.size.height - size) / 2, width: size, height: size)
+//        let croppedImage = image.cgImage!.cropping(to: rect)!
+        let croppedImage = image.cgImage!
+        var gridCenter = CGPoint()
+        var gridSize = CGSize()
+        
+        
+        // Split the square image into 16 equal parts
+        let spriteWidth = size / CGFloat(blockSize)
+        var sprites: [SKSpriteNode] = []
+        for row in 0..<blockSize {
+            for col in 0..<blockSize {
+                let x = CGFloat(col) * spriteWidth
+                let y = CGFloat(blockSize-1 - row) * spriteWidth
+                let spriteRect = CGRect(x: x, y: y, width: spriteWidth, height: spriteWidth)
+                let spriteCGImage = croppedImage.cropping(to: spriteRect)!
+                let spriteImage = UIImage(cgImage: spriteCGImage)
+                let spriteTexture = SKTexture(image: spriteImage)
+                let sprite = SKSpriteNode(texture: spriteTexture)
+                sprites.append(sprite)
             }
-            
-            // Set the last sprite to be black
-            let lastSprite = sprites.popLast()!
-            lastSprite.color = .black
-            lastSprite.colorBlendFactor = 1.0
-            lastSprite.name = ("emptyCell")
-            sprites.append(lastSprite)
-                    
-            // set position counter
-            var positionCounter = 0
-            
-            // Calculate Offset in X-Axis
-            let containerSize = scene.size
-            
-            let totalGridWidth = CGFloat(blockSize) * spriteWidth
-            let GridOffset = (containerSize.width - totalGridWidth) / 2
-            let xOffset = (totalGridWidth / 2) - GridOffset
-            
-            // Position the sprites in a 4x4 grid
-            let spriteMargin: CGFloat = 0.1
-            let spriteSize = CGSize(width: spriteWidth - spriteMargin, height: spriteWidth - spriteMargin)
-            for row in 0..<blockSize {
-                for col in 0..<blockSize {
-                    let index = row * blockSize + col
-                    let sprite = sprites[index]
-                    sprite.size = spriteSize
-                    sprite.position = CGPoint(x: CGFloat(col) * spriteWidth -  xOffset, y: CGFloat(row) * spriteWidth + 100)
-                    
-                    // Fügen Sie eine 'positionValue' zu 'userData' hinzu, um die Originalposition zu speichern
-                    sprite.userData = NSMutableDictionary()
-                    sprite.userData?.setValue(positionCounter, forKey: "positionValue")
-                    
-                    positionCounter += 1
-                    
-                    sprite.removeFromParent()
-                }
-            }
-            return sprites
-            
         }
         
-        // swap empty node with the node
-        func swapNodes(node: SKNode?, emptyCell: SKNode) {
-            if node != nil {
-                //images
-                let tempPos = emptyCell.position
-                let emptyCellPos = emptyCell.userData?.value(forKey: "positionValue") as? Int
-                let nodePos = node!.position
+        // Set the last sprite to be black
+        let lastSprite = sprites.popLast()!
+        lastSprite.color = .black
+        lastSprite.colorBlendFactor = 1.0
+        lastSprite.name = ("emptyCell")
+        sprites.append(lastSprite)
                 
-                let movePic = SKAction.move(to: tempPos, duration: shuffleDuration)
-                let moveEmpty = SKAction.move(to: nodePos, duration: shuffleDuration)
-                // array
-                let CellPos = node?.userData?.value(forKey: "positionValue") as? Int
-                tileOrder.swapAt(emptyCellPos!, CellPos!)
-                // moving nodes
+        // set position counter
+        var positionCounter = 0
+        
+        // Calculate Offset in X-Axis
+        let halfSpriteWidth = spriteWidth / 2
+        let leftCorner = -(scene.size.width / 2)
+        let leftEdge = leftCorner + halfSpriteWidth
+        let xOffset = (scene.size.width - size) / 2
+        let topEdge = scene.size.height / 2 - halfSpriteWidth
+        let yOffset = spriteWidth * CGFloat(blockSize - 1) + 20
+        
+        // Position the sprites in a 4x4 grid
+        let spriteMargin: CGFloat = 0.1
+        let spriteSize = CGSize(width: spriteWidth - spriteMargin, height: spriteWidth - spriteMargin)
+        print(spriteWidth)
+        for row in 0..<blockSize {
+            for col in 0..<blockSize {
+                let index = row * blockSize + col
+                let sprite = sprites[index]
+                sprite.size = spriteSize
+                sprite.position = CGPoint(x: leftEdge + CGFloat(col) * spriteWidth + xOffset, y: topEdge + CGFloat(row) * spriteWidth - yOffset)
+                print(sprite.frame.midX)
+                print(scene.size.width)
                 
-//                emptyCell.position = node!.position
-//                node!.position = tempPos
-                emptyCell.zPosition = -1
-                emptyCell.run(moveEmpty)
-                node!.run(movePic)
-                if checkIfPuzzleIsSolved() {
-                    print("PUZZLE IS SOLVED!")
-                }
+                // Fügen Sie eine 'positionValue' zu 'userData' hinzu, um die Originalposition zu speichern
+                sprite.userData = NSMutableDictionary()
+                sprite.userData?.setValue(positionCounter, forKey: "positionValue")
+                
+                positionCounter += 1
+                
+                sprite.removeFromParent()
             }
-            
         }
+        
+        gridSize = CGSize(width: size, height: size)
+        gridCenter = CGPoint(x: scene.view!.bounds.width / 2, y: gridSize.height / 2 + scene.view!.safeAreaInsets.top)
+        return (sprites, gridCenter, gridSize)
+            
+    }
+    
+    func getGridcenter(of sprites: [SKSpriteNode]) -> CGPoint{
+        var gridCenter = CGPoint()
+        var centerIndex : Int
+        if sprites.count % 2 == 0{
+            centerIndex = sprites.count / 2
+            gridCenter = sprites[centerIndex].position
+        }
+        else {
+            centerIndex = Int(sprites.count / 2)
+            gridCenter = sprites[centerIndex].position
+        }
+        print(gridCenter)
+    
+        return gridCenter
+    }
+        
+    // swap empty node with the node
+    func swapNodes(node: SKNode?, emptyCell: SKNode) {
+        if node != nil {
+            //images
+            let tempPos = emptyCell.position
+            let emptyCellPos = emptyCell.userData?.value(forKey: "positionValue") as? Int
+            let nodePos = node!.position
+            
+            let movePic = SKAction.move(to: tempPos, duration: shuffleDuration)
+            let moveEmpty = SKAction.move(to: nodePos, duration: shuffleDuration)
+            // array
+            let CellPos = node?.userData?.value(forKey: "positionValue") as? Int
+            tileOrder.swapAt(emptyCellPos!, CellPos!)
+            // moving nodes
+            emptyCell.zPosition = -1
+            emptyCell.run(moveEmpty)
+            node!.run(movePic)
+            if checkIfPuzzleIsSolved() {
+                print("PUZZLE IS SOLVED!")
+            }
+        }
+        
+    }
     
         // Check if one Neighbour is null
     func checkNullNeigbour() -> [Int] {

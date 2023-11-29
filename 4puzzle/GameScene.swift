@@ -12,8 +12,10 @@ import Photos
 
 class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     
+    
     var gameplayManager : GameplayManager!
     var inShuffle : Bool = true
+    
 
     
     
@@ -30,10 +32,16 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
     var Empty: SKNode?
     var image: UIImage?
     var sprites: [SKSpriteNode] = []
-    let globalBlockSize = Int(4)
+    let globalBlockSize = Int(3)
     lazy var maxNumberOfBlocks = self.globalBlockSize * self.globalBlockSize
     lazy var tileOrder = [Int](1...self.maxNumberOfBlocks)
     var sKView: SKView!
+    
+    var imageSize = CGSize()
+    var tileBackground = UIView()
+    
+    var gridCenter = CGPoint()
+    var gridSize = CGSize()
     
     
     
@@ -49,11 +57,13 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         switch authorizationStatus {
         case .authorized:
             image = gameplayManager.fetchRandomImageFromGallery()
-            sprites = gameplayManager.splitImageIntoSprites(image: image, blockSize: globalBlockSize)
+            let out = gameplayManager.splitImageIntoSprites(image: image, blockSize: globalBlockSize)
+            sprites = out.spritesOut
+            gridCenter = out.gridCenter
+            gridSize = out.gridSize
             for sprite in sprites {
                 self.addChild(sprite)
             }
-            
         case .denied, .restricted:
             // Handle denied or restricted authorization status
             break
@@ -79,7 +89,16 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
             break
         }
         
+        
+        
         touchArea.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height * 0.25)
+        
+        // tile Background
+        tileBackground.frame.size = gridSize
+        tileBackground.backgroundColor = .white
+        tileBackground.center = gridCenter
+        tileBackground.alpha = 1
+        
         
         // Reload Button
         buttonContainerView.backgroundColor = .systemBlue
@@ -154,10 +173,12 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         menuButtonContainerView.addSubview(menuButton)
         view.addSubview(menuButtonContainerView)
         
-//        repeatFunctionWithDelay(function: gameplayManager.shuffle, count: 50)
-        gameplayManager.shuffleWithDelay(count: 15)
+        gameplayManager.shuffleWithDelay(count: 16)
         
 //        performShuffle()
+        
+        view.addSubview(tileBackground)
+        tileBackground.layer.zPosition = 1
         
         
         
@@ -228,30 +249,6 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
             }
         }
     }
-    
-//    func performShuffle(){
-//        for _ in 0...50{
-//            let wait = SKAction.wait(forDuration: 0.5)
-//            self.run(wait) {
-//                self.gameplayManager.shuffle()
-//            }
-//        }
-//
-//    }
-    
-//    func repeatFunctionWithDelay(function: @escaping () -> Void, count: Int) {
-//        var actions: [SKAction] = []
-//
-//        for _ in 0..<count {
-//            let waitAction = SKAction.wait(forDuration: 0.13) // Wartezeit von 1 Sekunde
-//            let performAction = SKAction.run(function)
-//            let sequence = SKAction.sequence([waitAction, performAction])
-//            actions.append(sequence)
-//        }
-//
-//        let totalAction = SKAction.sequence(actions)
-//        self.run(totalAction)
-//    }
     
     
 
