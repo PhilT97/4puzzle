@@ -178,7 +178,11 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         menuButtonContainerView.addSubview(menuButton)
         view.addSubview(menuButtonContainerView)
         
-        gameplayManager.shuffleWithDelay(count: 16)
+        let wait = SKAction.wait(forDuration: 0.8)
+        self.run(wait){
+            self.gameplayManager.shuffleWithDelay(count: 16)
+        }
+        
         
 //        performShuffle()
         
