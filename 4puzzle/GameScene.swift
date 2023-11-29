@@ -38,7 +38,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
     var sKView: SKView!
     
     var imageSize = CGSize()
-    var tileBackground = UIView()
+    var tileBackground = SKSpriteNode()
     
     var gridCenter = CGPoint()
     var gridSize = CGSize()
@@ -62,6 +62,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
             gridCenter = out.gridCenter
             gridSize = out.gridSize
             for sprite in sprites {
+                sprite.zPosition = 1
                 self.addChild(sprite)
             }
         case .denied, .restricted:
@@ -94,10 +95,12 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         touchArea.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height * 0.25)
         
         // tile Background
-        tileBackground.frame.size = gridSize
-        tileBackground.backgroundColor = .white
-        tileBackground.center = gridCenter
+        tileBackground.size = gridSize
+        tileBackground.color = .black
+        tileBackground.position = gridCenter
         tileBackground.alpha = 1
+        tileBackground.zPosition = -2
+        self.addChild(tileBackground)
         
         
         // Reload Button
@@ -177,8 +180,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         
 //        performShuffle()
         
-        view.addSubview(tileBackground)
-        tileBackground.layer.zPosition = 1
+        
         
         
         

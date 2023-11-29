@@ -18,7 +18,7 @@ class GameplayManager{
     var globalBlockSize : Int
     var shuffleMoves : Bool = true
     var lastMove : Int = 0
-    var shuffleDuration : Double = 0.038
+    var shuffleDuration : Double = 0.045
     var shuffleFuncDur : Double = 0.365
     
     
@@ -105,25 +105,23 @@ class GameplayManager{
         var positionCounter = 0
         
         // Calculate Offset in X-Axis
+        let topMargin = 20.0
         let halfSpriteWidth = spriteWidth / 2
         let leftCorner = -(scene.size.width / 2)
         let leftEdge = leftCorner + halfSpriteWidth
         let xOffset = (scene.size.width - size) / 2
         let topEdge = scene.size.height / 2 - halfSpriteWidth
-        let yOffset = spriteWidth * CGFloat(blockSize - 1) + 20
+        let yOffset = spriteWidth * CGFloat(blockSize - 1) + topMargin
         
         // Position the sprites in a 4x4 grid
         let spriteMargin: CGFloat = 0.1
         let spriteSize = CGSize(width: spriteWidth - spriteMargin, height: spriteWidth - spriteMargin)
-        print(spriteWidth)
         for row in 0..<blockSize {
             for col in 0..<blockSize {
                 let index = row * blockSize + col
                 let sprite = sprites[index]
                 sprite.size = spriteSize
                 sprite.position = CGPoint(x: leftEdge + CGFloat(col) * spriteWidth + xOffset, y: topEdge + CGFloat(row) * spriteWidth - yOffset)
-                print(sprite.frame.midX)
-                print(scene.size.width)
                 
                 // Fügen Sie eine 'positionValue' zu 'userData' hinzu, um die Originalposition zu speichern
                 sprite.userData = NSMutableDictionary()
@@ -135,28 +133,27 @@ class GameplayManager{
             }
         }
         
+        
+        // Calculate the center of the Tile Background
+        var yCenter : CGFloat
+        let middleRowIndex = Int(sprites.count / 2) - 1
+        // if uneven take the center Point y of the middle tile
+        if(sprites.count % 2 != 0) {
+            yCenter = sprites[middleRowIndex].position.y
+        }
+        // else take the bottom edge of the middle row
+        else {
+            let spriteY = sprites[middleRowIndex].position.y
+            let spriteHeight = sprites[middleRowIndex].size.height
+            let anchorPointY = sprites[middleRowIndex].anchorPoint.y
+            yCenter = spriteY - (spriteHeight * anchorPointY)
+        }
         gridSize = CGSize(width: size, height: size)
-        gridCenter = CGPoint(x: scene.view!.bounds.width / 2, y: gridSize.height / 2 + scene.view!.safeAreaInsets.top)
+        gridCenter = CGPoint(x: 0, y: yCenter)
         return (sprites, gridCenter, gridSize)
             
     }
-    
-    func getGridcenter(of sprites: [SKSpriteNode]) -> CGPoint{
-        var gridCenter = CGPoint()
-        var centerIndex : Int
-        if sprites.count % 2 == 0{
-            centerIndex = sprites.count / 2
-            gridCenter = sprites[centerIndex].position
-        }
-        else {
-            centerIndex = Int(sprites.count / 2)
-            gridCenter = sprites[centerIndex].position
-        }
-        print(gridCenter)
-    
-        return gridCenter
-    }
-        
+
     // swap empty node with the node
     func swapNodes(node: SKNode?, emptyCell: SKNode) {
         if node != nil {
