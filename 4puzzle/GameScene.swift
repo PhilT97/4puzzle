@@ -12,12 +12,10 @@ import Photos
 
 class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     
+    var globalBlockSize = 3
     
     var gameplayManager : GameplayManager!
     var inShuffle : Bool = true
-    
-
-    
     
     var IterationCount = 0
     private var label : SKLabelNode?
@@ -32,7 +30,6 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
     var Empty: SKNode?
     var image: UIImage?
     var sprites: [SKSpriteNode] = []
-    let globalBlockSize = Int(3)
     lazy var maxNumberOfBlocks = self.globalBlockSize * self.globalBlockSize
     lazy var tileOrder = [Int](1...self.maxNumberOfBlocks)
     var sKView: SKView!
@@ -42,6 +39,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
     
     var gridCenter = CGPoint()
     var gridSize = CGSize()
+    
     
     
     
@@ -256,6 +254,10 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
                 break
             }
         }
+    }
+    
+    func setGlobalBlockSize(blockSize: Int){
+        self.globalBlockSize = blockSize
     }
     
     
