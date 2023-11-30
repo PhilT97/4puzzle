@@ -147,6 +147,7 @@ class GameplayManager{
             let spriteHeight = sprites[middleRowIndex].size.height
             let anchorPointY = sprites[middleRowIndex].anchorPoint.y
             yCenter = spriteY - (spriteHeight * anchorPointY)
+            yCenter += spriteHeight
         }
         gridSize = CGSize(width: size, height: size)
         gridCenter = CGPoint(x: 0, y: yCenter)

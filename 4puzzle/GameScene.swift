@@ -12,12 +12,12 @@ import Photos
 
 class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     
-    var globalBlockSize = 3
+    var globalBlockSize = Int()
     
     var gameplayManager : GameplayManager!
     var inShuffle : Bool = true
     
-    var IterationCount = 0
+    var IterationCount = Int()
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
     let touchArea = UIView()
@@ -178,7 +178,7 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
         
         let wait = SKAction.wait(forDuration: 0.8)
         self.run(wait){
-            self.gameplayManager.shuffleWithDelay(count: 16)
+            self.gameplayManager.shuffleWithDelay(count: self.IterationCount)
         }
         
         
@@ -196,6 +196,8 @@ class GameScene: SKScene, UIImagePickerControllerDelegate & UINavigationControll
             currentScene.removeAllChildren()
             if let view = self.view {
                 if let scene = GameScene(fileNamed: "GameScene") {
+                    scene.globalBlockSize = self.globalBlockSize
+                    scene.IterationCount = self.IterationCount
                     scene.scaleMode = .aspectFit
                     
                     view.presentScene(scene)

@@ -140,7 +140,6 @@ class GameMenu: SKScene, UIImagePickerControllerDelegate & UINavigationControlle
         // Wiederholen Sie dies für alle anderen UIView-Elemente
     }
     @objc func nextOption(from view: SKView) {
-        
         UIView.animate(withDuration: self.slide){
             self.threeXthree.center.x -= view.frame.midX * 2
             self.fourXfour.center.x -= view.frame.midX * 2
@@ -151,6 +150,7 @@ class GameMenu: SKScene, UIImagePickerControllerDelegate & UINavigationControlle
             self.startGame.center.x -= view.frame.midX * 2
             self.back.alpha = 1
         }
+            
     }
     
     @objc func tileNumbers(from view: SKView) {
@@ -197,13 +197,14 @@ class GameMenu: SKScene, UIImagePickerControllerDelegate & UINavigationControlle
     }
     
     @objc func tileMode(_ sender: UIButton, view: SKView){
-//        let tileNumber = sender.tag
+        let tileNumber = sender.tag
         var delay: TimeInterval = 0.0
         let delayIncrement: TimeInterval = 0.2
         for view in self.view!.subviews {
             if let button = view as? UIButton, button.currentTitle != "back"{
                 UIView.animate(withDuration: 0.6, delay: delay, options: [], animations: {
                     button.center.x -= self.view!.frame.midX * 2
+                    button.alpha = 0
                 }, completion: nil)
                 delay += delayIncrement
             }
@@ -220,6 +221,8 @@ class GameMenu: SKScene, UIImagePickerControllerDelegate & UINavigationControlle
                     currentScene.removeAllChildren()
                     if let view = self.view {
                         if let scene = GameScene(fileNamed: "GameScene") {
+                            scene.globalBlockSize = tileNumber
+                            scene.IterationCount = tileNumber * 6 
                             scene.scaleMode = .aspectFit
                             let wait = SKAction.wait(forDuration: 0.8)
                             self.run(wait){
